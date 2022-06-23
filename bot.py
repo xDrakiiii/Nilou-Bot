@@ -109,7 +109,7 @@ class KusanaliBot(commands.Bot):
                         "Attempting to login with only the server members privileged intent. Some plugins might not work correctly."
                     )
 
-                    await self.start(self.token)
+                    await self.start(self.config["bot_token"])
 
             except discord.PrivilegedIntentsRequired:
                 logger.critical(

@@ -963,7 +963,10 @@ class Moderation(BaseCog):
         Bonks user.
 
         """
-
+await ctx.defer()
+        
+    return
+        
         file = discord.File(
             f"./assets/bonk/{random.choice(os.listdir('./assets/bonk/'))}")
 

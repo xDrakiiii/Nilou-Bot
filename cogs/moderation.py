@@ -964,9 +964,6 @@ class Moderation(BaseCog):
 
         """
 
-        await ctx.defer()
-
-
         file = discord.File(
             f"./assets/bonk/{random.choice(os.listdir('./assets/bonk/'))}")
 

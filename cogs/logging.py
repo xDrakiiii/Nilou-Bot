@@ -381,7 +381,7 @@ class Logging(BaseCog):
 
         for target in channel.overwrites:
             embed.add_field(name=f"Overwrites for {target.name}", value="".join(
-                [f"**{permission.replace('_', ' ').capitalize()}:** {'洸' if value else '衍'}\n" if value != None else "" for permission, value in channel.overwrites[target]]), inline=False)
+                [f"**{permission.replace('_', ' ').capitalize()}:** {'🟩' if value else '🟥'}\n" if value != None else "" for permission, value in channel.overwrites[target]]), inline=False)
 
         embed.set_footer(text=channel.id)
 
@@ -457,7 +457,7 @@ class Logging(BaseCog):
                                  v in iter(after.overwrites[target])}
 
             embed.add_field(name=f"Overwrites for {target.name}", value="".join(
-                [f"**{before_permission[0].replace('_', ' ').capitalize()}:** {'洸' if before_permission[1] else '衍' if before_permission[1] != None else '筮・} 筐・{'洸' if after_permissions[before_permission[0]] else '衍' if after_permissions[before_permission[0]] != None else '筮・}\n"
+                [f"**{before_permission[0].replace('_', ' ').capitalize()}:** {'🟩' if before_permission[1] else '🟥' if before_permission[1] != None else '⬜'} ➜ {'🟩' if after_permissions[before_permission[0]] else '🟥' if after_permissions[before_permission[0]] != None else '⬜'}\n"
                  if before_permission[1] != after_permissions[before_permission[0]] else ""
                  for before_permission in before.overwrites[target]]), inline=False)
 
@@ -556,7 +556,7 @@ class Logging(BaseCog):
             after_permissions = {k: v for k, v in iter(after.permissions)}
 
             embed.add_field(name="Permissions", value="".join(
-                [f"**{before_permission[0].replace('_', ' ').capitalize()}:** {'洸' if before_permission[1] else '衍'} 筐・{'洸' if after_permissions[before_permission[0]] else '衍'}\n"
+                [f"**{before_permission[0].replace('_', ' ').capitalize()}:** {'🟩' if before_permission[1] else '🟥'} ➜ {'🟩' if after_permissions[before_permission[0]] else '🟥'}\n"
                  if before_permission[1] != after_permissions[before_permission[0]] else ""
                  for before_permission in before.permissions]), inline=False)
 

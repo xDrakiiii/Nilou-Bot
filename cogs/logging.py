@@ -4,7 +4,6 @@ from datetime import datetime
 import time
 import discord
 import requests
-import numpy as np
 from io import BytesIO
 from PIL import Image
 

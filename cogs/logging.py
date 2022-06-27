@@ -3,8 +3,6 @@ from copy import deepcopy
 from datetime import datetime
 import time
 import discord
-import requests
-from io import BytesIO
 from PIL import Image
 
 from discord.ext import commands

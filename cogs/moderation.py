@@ -67,6 +67,7 @@ class Moderation(BaseCog):
     async def get_member_ids(self, ids):
         """
         Gets the IDs of members.
+
         """
 
         regex = r"\d{18}"
@@ -83,6 +84,7 @@ class Moderation(BaseCog):
                   reason: discord.Option(str, description="Reason for ban.", default="No reason given.")):
         """
         Bans a member via /ban [members] [duration: Optional] [reason: Optional]
+
         """
 
         after = None
@@ -108,25 +110,33 @@ class Moderation(BaseCog):
 
         description = ""
         for member_id in member_ids:
-            member = await self.bot.fetch_user(int(member_id))
+            member = await self.guild.fetch_member(int(member_id))
 
             if member == None:
                 description += f"The member with ID `{member_id}` was not found.\n"
                 continue
 
-            try:
-                await member.send(f"You have been banned from {self.guild.name}. Reason: {reason}")
-                description += "and a message has been sent.\n"
-            except:
-                self.logger.error(f"Could not message {member.name}.")
-                description += "but a message could not be sent.\n"
+            if str(ctx.author.id) not in self.bot.config["owners"] and ctx.author.roles[-1] < member.roles[-1]:
+                description += f"You do not have the permission to ban the member {member.mention}.\n"
+                continue
+            
+            addition = ""
 
             try:
-                await self.guild.ban(member, reason=reason)
+                await member.send(f"You have been banned from {self.guild.name}. Reason: {reason}")
+                addition = "and a message has been sent.\n"
+            except:
+                self.logger.error(f"Could not message {member.name}.")
+                addition = "but a message could not be sent.\n"
+
+            try:
+                await member.ban(reason=reason)
                 description += f"The member {member.mention} `{member.name}#{member.discriminator}` has been successfully banned, "
             except Exception as e:
                 description += f"The member {member.mention} `{member.name}#{member.discriminator}` could not be banned.\n"
                 continue
+            
+            description+= addition
 
             if after:
                 self.cache["unbanQueue"][str(
@@ -155,6 +165,7 @@ class Moderation(BaseCog):
                     reason: discord.Option(str, description="Reason for unban.", default="No reason given.")):
         """
         Unbans a member via /unban [members] 
+
         """
 
         member_ids = await self.get_member_ids(members)
@@ -201,6 +212,7 @@ class Moderation(BaseCog):
     async def _unban(self, member, time):
         """
         Handles unban logic depending on time left.
+
         """
         end = datetime.fromtimestamp(int(time))
         now = datetime.now()
@@ -233,6 +245,7 @@ class Moderation(BaseCog):
     async def bans(self, ctx: ApplicationContext, member: discord.Option(discord.Member, description="The members you want to get bans.")):
         """
         Lists all the bans and unbans for a member
+
         """
 
         member_id = str(member.id)
@@ -276,6 +289,7 @@ class Moderation(BaseCog):
                    reason: discord.Option(str, description="Reason for kick.", default="No reason given.")):
         """
         Kicks a member via /kick [members] [reason: Optional]
+
         """
 
         member_ids = await self.get_member_ids(members)
@@ -289,26 +303,34 @@ class Moderation(BaseCog):
 
         description = ""
         for member_id in member_ids:
-            member = await self.bot.fetch_user(int(member_id))
+            member = await self.guild.fetch_member(int(member_id))
 
             if member == None:
                 description += f"The member with ID `{member_id}` was not found.\n"
                 continue
 
+            if str(ctx.author.id) not in self.bot.config["owners"] and ctx.author.roles[-1] < member.roles[-1]:
+                description += f"You do not have the permission to kick the member {member.mention}.\n"
+                continue
+
+            addition = ""
+
             try:
-                await self.guild.kick(member, reason=reason)
+                await member.send(f"You have been kicked from {self.guild.name}. Reason: {reason}")
+                addition = "and a message has been sent.\n"
+            except:
+                self.logger.error(f"Could not message {member.name}.")
+                addition = "but a message could not be sent.\n"
+
+            try:
+                await member.kick(reason=reason)
                 description += f"The member {member.mention} `{member.name}#{member.discriminator}` has been successfully kicked, "
             except Exception as e:
                 description += f"The member {member.mention} `{member.name}#{member.discriminator}` could not be kicked.\n"
                 continue
 
-            try:
-                await member.send(f"You have been kicked from {self.guild.name}. Reason: {reason}")
-                description += "and a message has been sent.\n"
-            except:
-                self.logger.error(f"Could not message {member.name}.")
-                description += "but a message could not be sent.\n"
-
+            description += addition
+            
             self.cache["kicks"].setdefault(str(member_id), []).append(
                 {"responsible": ctx.author.id, "reason": reason, "time": datetime.now().timestamp()})
 
@@ -326,6 +348,7 @@ class Moderation(BaseCog):
     async def kicks(self, ctx: ApplicationContext, member: discord.Option(discord.Member, description="The members you want to get bans.")):
         """
         Lists all the kicks for a member.
+
         """
 
         member_id = str(member.id)
@@ -358,6 +381,7 @@ class Moderation(BaseCog):
     async def setmute(self, ctx: ApplicationContext, role: discord.Option(discord.Role, description="mute role")):
         """
         Sets the mute role via /mute [role]
+
         """
 
         if await self.guild._fetch_role(role.id) == None:
@@ -382,6 +406,7 @@ class Moderation(BaseCog):
                    reason: discord.Option(str, description="Reason for mute.", default="No reason given.")):
         """
         Mutes a member via /mute [members] [duration: Optional] [reason: Optional]
+
         """
 
         if not self.cache["muteRole"]:
@@ -420,6 +445,10 @@ class Moderation(BaseCog):
 
             if member == None:
                 description += f"The member with ID `{member_id}` was not found.\n"
+                continue
+
+            if str(ctx.author.id) not in self.bot.config["owners"] and ctx.author.roles[-1] < member.roles[-1]:
+                description += f"You do not have the permission to mute the member {member.mention}.\n"
                 continue
 
             if mute_role in member.roles:
@@ -472,6 +501,7 @@ class Moderation(BaseCog):
                      reason: discord.Option(str, description="Reason for unmute.", default="No reason given.")):
         """
         Unmutes a member via /unmute [members] [reason: optional]
+
         """
 
         member_ids = await self.get_member_ids(members)
@@ -526,6 +556,7 @@ class Moderation(BaseCog):
     async def _unmute(self, member, time):
         """
         Handles unmute logic depending on time left.
+
         """
         end = datetime.fromtimestamp(int(time))
         now = datetime.now()
@@ -560,6 +591,7 @@ class Moderation(BaseCog):
     async def mutes(self, ctx: ApplicationContext, member: discord.Option(discord.Member, description="The members you want to get mute history.")):
         """
         Lists all the mutes and unmutes for a member
+
         """
 
         member_id = str(member.id)
@@ -600,6 +632,7 @@ class Moderation(BaseCog):
                    reason: discord.Option(str, description="Warn reason.", default="No reason given.")):
         """
         Warns a member via /warn [members] [reason]
+
         """
 
         member_ids = await self.get_member_ids(members)
@@ -647,6 +680,7 @@ class Moderation(BaseCog):
                      reason: discord.Option(str, description="Warn reason.", default="No reason given.")):
         """
         Pardons warns for some members via /pardon [members]
+
         """
 
         member_ids = await self.get_member_ids(members)
@@ -706,6 +740,7 @@ class Moderation(BaseCog):
     async def warns(self, ctx: ApplicationContext, member: discord.Option(discord.Member, description="The members you want to get warns for.")):
         """
         Lists all the warns for a member
+
         """
 
         member_id = str(member.id)
@@ -754,6 +789,7 @@ class Moderation(BaseCog):
                    note: discord.Option(str, description="Note")):
         """
         Writes a note about a member member via /note [members] [note]
+
         """
 
         member_ids = await self.get_member_ids(members)
@@ -790,6 +826,7 @@ class Moderation(BaseCog):
     async def remove_note(self, ctx: ApplicationContext, members: discord.Option(str, description="The members you want to omit notes for.")):
         """
         Omits notes for some members via /omit [members]
+
         """
 
         member_ids = await self.get_member_ids(members)
@@ -843,6 +880,7 @@ class Moderation(BaseCog):
     async def notes(self, ctx: ApplicationContext, member: discord.Option(discord.Member, description="The members you want to get notes.")):
         """
         Lists all the notes for a member
+
         """
 
         member_id = str(member.id)
@@ -877,6 +915,7 @@ class Moderation(BaseCog):
                        channel: discord.Option(discord.TextChannel, description="The channel you want to set slowmode.", default=None)):
         """
         Sets slowmode for a channel.
+
         """
         regex = (r'((?P<hours>-?\d+)h)?'
                  r'((?P<minutes>-?\d+)m)?'
@@ -927,6 +966,7 @@ class Moderation(BaseCog):
                     user: discord.Option(discord.Member, description="User's messages to purge.", default=None)):
         """
         Purges messages via /purge [number] [user: optional]
+
         """
 
         deleted = await ctx.channel.purge(limit=messages,
@@ -940,15 +980,24 @@ class Moderation(BaseCog):
     @checks.has_permissions(PermissionLevel.STAFF)
     async def bonk(self, ctx: ApplicationContext, member: discord.Option(discord.Member, "Member to bonk.")):
         """
-        Bonks user.
+        Bonks user, bonk owner for a surprise.
+
         """
+
         await ctx.defer()
-        
-        
+
+        if member.id == 227244423166033921:
+            file = discord.File("./assets/wake-up-luma.gif")
+            await ctx.respond(member.mention, file=file)
+
+            return
+
         file = discord.File(
             f"./assets/bonk/{random.choice(os.listdir('./assets/bonk/'))}")
 
         await ctx.respond(":(" if member.id == 906318377432281088 else member.mention, file=file)
+
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
